@@ -11,4 +11,3 @@ else
 	echo $2 > $1
 fi
 
-
