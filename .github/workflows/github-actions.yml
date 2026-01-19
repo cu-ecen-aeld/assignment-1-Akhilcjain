@@ -1,31 +1,42 @@
 name: assignment-test
-on:
-    push:
-        tags-ignore:
-            - '*'
-        branches:
-            - '*'
-jobs:
-    unit-test:
-        container: 
-          image: cuaesd/aesd-autotest:24-unit-test
-          options: --entrypoint /bin/bash
-        runs-on: self-hosted
-        steps:
-          - uses: actions/checkout@v2
-          - name: Checkout submodules
-            run : git submodule update --init --recursive
-          - name: Run unit test
-            run: ./unit-test.sh
-    full-test:
-        container:
-          image: cuaesd/aesd-autotest:24-assignment1
-          options: --entrypoint /bin/bash
 
-        runs-on: self-hosted
-        steps:
-          - uses: actions/checkout@v2
-          - name: Checkout submodules
-            run : git submodule update --init --recursive
-          - name: Run full test
-            run: ./full-test.sh
+on:
+  push:
+    branches:
+      - '*'
+    tags-ignore:
+      - '*'
+
+jobs:
+  unit-test:
+    runs-on: self-hosted
+    container:
+      image: cuaesd/aesd-autotest:24-unit-test
+      options: --platform linux/amd64 --entrypoint /bin/bash
+    steps:
+      - name: Install Node.js
+        run: |
+          curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+          apt-get install -y nodejs
+      - uses: actions/checkout@v4
+      - name: Checkout submodules
+        run: git submodule update --init --recursive
+      - name: Run unit test
+        run: ./unit-test.sh
+
+  full-test:
+    runs-on: self-hosted
+    container:
+      image: cuaesd/aesd-autotest:24-assignment1
+      options: --platform linux/amd64 --entrypoint /bin/bash
+    steps:
+      - name: Install Node.js
+        run: |
+          curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+          apt-get install -y nodejs
+      - uses: actions/checkout@v4
+      - name: Checkout submodules
+        run: git submodule update --init --recursive
+      - name: Run full test
+        run: ./full-test.sh
+
