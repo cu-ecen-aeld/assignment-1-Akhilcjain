@@ -1,57 +1,43 @@
 name: assignment-test
+
 on:
-    push:
-        tags-ignore:
-            - '*'
-        branches:
-            - '*'
+  push:
+    branches: ["*"]
+
 jobs:
+  unit-test:
+    runs-on: self-hosted
 
-    unit-test:
-        container: cuaesd/aesd-autotest:24-unit-test
-        runs-on: self-hosted
-        env:
-          HTTP_PROXY: http://192.168.127.1:3129
-          HTTPS_PROXY: http://192.168.127.1:3129
-          http_proxy: http://192.168.127.1:3129
-          https_proxy: http://192.168.127.1:3129
-          NO_PROXY: localhost,127.0.0.1,127.*,172.*,192.168.*,10.*
-          no_proxy: localhost,127.0.0.1,127.*,172.*,192.168.*,10.*
-        steps:
-          - uses: actions/checkout@v2
-          - name: Checkout submodules
-            run : git submodule update --init --recursive
-          - name: Run unit test
-            run: ./unit-test.sh
-    full-test:
-        container: cuaesd/aesd-autotest:24-assignment2
-        runs-on: self-hosted
-        env:
-          HTTP_PROXY: http://192.168.127.1:3129
-          HTTPS_PROXY: http://192.168.127.1:3129
-          http_proxy: http://192.168.127.1:3129
-          https_proxy: http://192.168.127.1:3129
-          NO_PROXY: localhost,127.0.0.1,127.*,172.*,192.168.*,10.*
-          no_proxy: localhost,127.0.0.1,127.*,172.*,192.168.*,10.*
+    steps:
+      # Checkout runs on HOST (works with wsl-proxy)
+      - uses: actions/checkout@v2
 
-        steps:
-        - name: Remove inherited proxy vars
-          run: |
-            unset http_proxy https_proxy HTTP_PROXY HTTPS_PROXY ALL_PROXY all_proxy
-            echo "Proxy vars unset"
+      - name: Checkout submodules
+        run: git submodule update --init --recursive
 
-        - name: Set container-safe proxy
-          run: |
-            echo "HTTP_PROXY=http://192.168.127.1:3129" >> $GITHUB_ENV
-            echo "HTTPS_PROXY=http://192.168.127.1:3129" >> $GITHUB_ENV
-            echo "http_proxy=http://192.168.127.1:3129" >> $GITHUB_ENV
-            echo "https_proxy=http://192.168.127.1:3129" >> $GITHUB_ENV
-            echo "NO_PROXY=localhost,127.0.0.1,127.*,172.*,192.168.*,10.*" >> $GITHUB_ENV
-            echo "no_proxy=localhost,127.0.0.1,127.*,172.*,192.168.*,10.*" >> $GITHUB_ENV
+      # Run container manually (no checkout inside container)
+      - name: Run unit tests in container
+        run: |
+          docker run --rm \
+            -v "$PWD:/work" \
+            -w /work \
+            cuaesd/aesd-autotest:24-unit-test \
+            ./unit-test.sh
 
-        - uses: actions/checkout@v2
-          - uses: actions/checkout@v2
-          - name: Checkout submodules
-            run : git submodule update --init --recursive
-          - name: Run full test
-            run: ./full-test.sh
+  full-test:
+    runs-on: self-hosted
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Checkout submodules
+        run: git submodule update --init --recursive
+
+      - name: Run full tests in container
+        run: |
+          docker run --rm \
+            -v "$PWD:/work" \
+            -w /work \
+            cuaesd/aesd-autotest:24-assignment1 \
+            ./full-test.sh
+
