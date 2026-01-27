@@ -2,42 +2,33 @@ name: assignment-test
 
 on:
   push:
-    branches: ["*"]
+    branches:
+      - "*"
 
 jobs:
   unit-test:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
+    container: cuaesd/aesd-autotest:24-unit-test
 
     steps:
-      # Checkout runs on HOST (works with wsl-proxy)
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Checkout submodules
         run: git submodule update --init --recursive
 
-      # Run container manually (no checkout inside container)
-      - name: Run unit tests in container
-        run: |
-          docker run --rm \
-            -v "$PWD:/work" \
-            -w /work \
-            cuaesd/aesd-autotest:24-unit-test \
-            ./unit-test.sh
+      - name: Run unit test
+        run: ./unit-test.sh
 
   full-test:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
+    container: cuaesd/aesd-autotest:24-assignment1
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Checkout submodules
         run: git submodule update --init --recursive
 
-      - name: Run full tests in container
-        run: |
-          docker run --rm \
-            -v "$PWD:/work" \
-            -w /work \
-            cuaesd/aesd-autotest:24-assignment1 \
-            ./full-test.sh
+      - name: Run full test
+        run: ./full-test.sh
 
